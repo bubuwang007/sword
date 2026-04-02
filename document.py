@@ -45,6 +45,10 @@ class WordDocument:
         """设置章节间是否分页."""
         self._page_break_between_sections = enabled
 
+    def get_number_counts(self) -> dict[int, int]:
+        """获取当前编号计数状态（供外部保存延续）."""
+        return self._number_counts.copy()
+
     def set_start_number(self, level: int, number: int) -> None:
         """
         设置章节起始编号.

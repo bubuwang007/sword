@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from docx.document import Document as DocxDocument
-from docx.shared import Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
+from docx.shared import Pt, RGBColor
 
 
 class StyleFormat:
@@ -20,9 +21,47 @@ class StyleFormat:
         """
         self._doc = document
 
-    def _set_font_rpr(self, font, ascii: str | None = None, east_asia: str | None = None, h_ansi: str | None = None) -> None:
+    def _get_style(self, name: str):
         """
-        内部方法：设置字体（支持中英文分开）.
+        获取样式对象.
+
+        Args:
+            name: 样式名称.
+
+        Returns:
+            样式对象，不存在则返回 None.
+        """
+        for s in self._doc.styles:
+            if s.name == name:
+                return s
+        return None
+
+    def _ensure_rpr(self, font) -> OxmlElement:
+        """
+        确保字体属性节点存在.
+
+        Args:
+            font: 字体对象.
+
+        Returns:
+            w:rPr 元素节点.
+        """
+        style_elem = font._element
+        rPr = style_elem.find(qn("w:rPr"))
+        if rPr is None:
+            rPr = OxmlElement("w:rPr")
+            style_elem.append(rPr)
+        return rPr
+
+    def _set_font_rpr(
+        self,
+        font,
+        ascii: str | None = None,
+        east_asia: str | None = None,
+        h_ansi: str | None = None,
+    ) -> None:
+        """
+        设置字体属性（支持中英文分开）.
 
         Args:
             font: 字体对象.
@@ -30,14 +69,21 @@ class StyleFormat:
             east_asia: 东亚字体名称（中文）.
             h_ansi: 高 ANSI 字体名称.
         """
-        rPr = font._element
-        if rPr is None:
-            return
-
+        rPr = self._ensure_rpr(font)
         rFonts = rPr.find(qn("w:rFonts"))
         if rFonts is None:
             rFonts = OxmlElement("w:rFonts")
             rPr.append(rFonts)
+
+        # 清除主题属性，避免覆盖显式字体设置
+        for attr in (
+            qn("w:asciiTheme"),
+            qn("w:eastAsiaTheme"),
+            qn("w:hAnsiTheme"),
+            qn("w:cstheme"),
+            qn("w:hint"),
+        ):
+            rFonts.attrib.pop(attr, None)
 
         if ascii is not None:
             rFonts.set(qn("w:ascii"), ascii)
@@ -45,6 +91,42 @@ class StyleFormat:
             rFonts.set(qn("w:eastAsia"), east_asia)
         if h_ansi is not None:
             rFonts.set(qn("w:hAnsi"), h_ansi)
+
+    def _apply_font(
+        self,
+        font,
+        name: str | None = None,
+        size: int | None = None,
+        bold: bool | None = None,
+        color: tuple[int, int, int] | None = None,
+        east_asia: str | None = None,
+        ascii: str | None = None,
+        h_ansi: str | None = None,
+    ) -> None:
+        """
+        应用字体属性到字体对象.
+
+        Args:
+            font: 字体对象.
+            name: 字体名称（同时设置中英文）.
+            size: 字体大小（磅）.
+            bold: 是否加粗.
+            color: RGB 颜色元组.
+            east_asia: 中文字体名称.
+            ascii: 西文字体名称.
+            h_ansi: 高 ANSI 字体名称.
+        """
+        if name is not None:
+            self._set_font_rpr(font, ascii=name, east_asia=name, h_ansi=name)
+        elif east_asia is not None or ascii is not None or h_ansi is not None:
+            self._set_font_rpr(font, ascii=ascii, east_asia=east_asia, h_ansi=h_ansi)
+
+        if size is not None:
+            font.size = Pt(size)
+        if bold is not None:
+            font.bold = bold
+        if color is not None:
+            font.color.rgb = RGBColor(*color)
 
     def set_heading_font(
         self,
@@ -70,25 +152,27 @@ class StyleFormat:
             ascii: 西文字体名称（如 "Times New Roman"）.
             h_ansi: 高 ANSI 字体名称.
         """
-        style_name = f"Heading {level}"
-        if style_name not in [s.name for s in self._doc.styles]:
+        style = self._get_style(f"Heading {level}")
+        if style is None:
             return
+        self._apply_font(
+            style.font,
+            name=name,
+            size=size,
+            bold=bold,
+            color=color,
+            east_asia=east_asia,
+            ascii=ascii,
+            h_ansi=h_ansi,
+        )
 
-        style = self._doc.styles[style_name]
-        font = style.font
-
-        if name is not None:
-            font.name = name
-        if east_asia is not None or ascii is not None or h_ansi is not None:
-            self._set_font_rpr(font, ascii=ascii, east_asia=east_asia, h_ansi=h_ansi)
-        if size is not None:
-            font.size = Pt(size)
-        if bold is not None:
-            font.bold = bold
-        if color is not None:
-            font.color.rgb = RGBColor(*color)
-
-    def set_heading_paragraph(self, level: int, alignment: str | None = None, space_before: int | None = None, space_after: int | None = None) -> None:
+    def set_heading_paragraph(
+        self,
+        level: int,
+        alignment: str | None = None,
+        space_before: int | None = None,
+        space_after: int | None = None,
+    ) -> None:
         """
         设置标题样式段落格式.
 
@@ -98,15 +182,11 @@ class StyleFormat:
             space_before: 段前间距（磅）.
             space_after: 段后间距（磅）.
         """
-        from docx.enum.text import WD_ALIGN_PARAGRAPH
-
-        style_name = f"Heading {level}"
-        if style_name not in [s.name for s in self._doc.styles]:
+        style = self._get_style(f"Heading {level}")
+        if style is None:
             return
 
-        style = self._doc.styles[style_name]
         para_format = style.paragraph_format
-
         alignment_map = {
             "left": WD_ALIGN_PARAGRAPH.LEFT,
             "center": WD_ALIGN_PARAGRAPH.CENTER,
@@ -141,20 +221,18 @@ class StyleFormat:
             ascii: 西文字体名称（如 "Times New Roman"）.
             h_ansi: 高 ANSI 字体名称.
         """
-        if "Normal" not in [s.name for s in self._doc.styles]:
+        style = self._get_style("Normal")
+        if style is None:
             return
-
-        style = self._doc.styles["Normal"]
-        font = style.font
-
-        if name is not None:
-            font.name = name
-        if east_asia is not None or ascii is not None or h_ansi is not None:
-            self._set_font_rpr(font, ascii=ascii, east_asia=east_asia, h_ansi=h_ansi)
-        if size is not None:
-            font.size = Pt(size)
-        if bold is not None:
-            font.bold = bold
+        self._apply_font(
+            style.font,
+            name=name,
+            size=size,
+            bold=bold,
+            east_asia=east_asia,
+            ascii=ascii,
+            h_ansi=h_ansi,
+        )
 
     def enable_outline_level(self, style_name: str, level: int) -> None:
         """
@@ -164,10 +242,10 @@ class StyleFormat:
             style_name: 样式名称（如 "Heading 1"）.
             level: 大纲级别（0-9）.
         """
-        if style_name not in [s.name for s in self._doc.styles]:
+        style = self._get_style(style_name)
+        if style is None:
             return
 
-        style = self._doc.styles[style_name]
         pPr = style._element.find(qn("w:pPr"))
         if pPr is None:
             pPr = OxmlElement("w:pPr")
