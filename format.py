@@ -539,77 +539,26 @@ class StyleFormat:
             "insideV": inside_v,
         }
 
+        # 检查是否有任何边框样式被指定
+        has_style_specified = any(v is not None for v in border_attrs.values())
+
         for border_name, border_style in border_attrs.items():
+            elem = self._ensure_elem(tblBorders, border_name)
             if border_style is not None:
-                elem = self._ensure_elem(tblBorders, border_name)
+                # 指定了样式，更新所有属性
                 elem.set(qn("w:val"), border_style)
-                elem.set(qn("w:sz"), str(border_size))
+                elem.set(qn("w:sz"), str(border_size*8))
                 elem.set(qn("w:space"), "0")
                 elem.set(qn("w:color"), border_color)
-
-    def set_table_margins(
-        self,
-        style_name: str,
-        top: int | None = None,
-        bottom: int | None = None,
-        left: int | None = None,
-        right: int | None = None,
-    ) -> None:
-        """
-        设置表格样式外边距.
-
-        Args:
-            style_name: 样式名称.
-            top: 上边距（磅）.
-            bottom: 下边距（磅）.
-            left: 左边距（磅）.
-            right: 右边距（磅）.
-        """
-        style = self._get_style(style_name, WD_STYLE_TYPE.TABLE)
-        if style is None:
-            return
-
-        tblPr = self._ensure_elem(style._element, "tblPr")
-        tblMar = self._ensure_elem(tblPr, "tblMar")
-
-        margin_attrs = {"top": top, "bottom": bottom, "left": left, "right": right}
-        for margin_name, margin_value in margin_attrs.items():
-            if margin_value is not None:
-                elem = self._ensure_elem(tblMar, margin_name)
-                elem.set(qn("w:w"), str(int(margin_value * 20)))
-                elem.set(qn("w:type"), "dxa")
-
-    def set_table_cell_margins(
-        self,
-        style_name: str,
-        top: int | None = None,
-        bottom: int | None = None,
-        left: int | None = None,
-        right: int | None = None,
-    ) -> None:
-        """
-        设置表格样式单元格内边距.
-
-        Args:
-            style_name: 样式名称.
-            top: 上边距（磅）.
-            bottom: 下边距（磅）.
-            left: 左边距（磅）.
-            right: 右边距（磅）.
-        """
-        style = self._get_style(style_name, WD_STYLE_TYPE.TABLE)
-        if style is None:
-            return
-
-        tblPr = self._ensure_elem(style._element, "tblPr")
-        tcMar = self._ensure_elem(tblPr, "tcMar")
-
-        margin_attrs = {"top": top, "bottom": bottom, "left": left, "right": right}
-        for margin_name, margin_value in margin_attrs.items():
-            if margin_value is not None:
-                elem = self._ensure_elem(tcMar, margin_name)
-                elem.set(qn("w:w"), str(int(margin_value * 20)))
-                elem.set(qn("w:type"), "dxa")
+            elif has_style_specified:
+                # 已指定其他边框样式但此边框未指定，保持原样
+                pass
+            else:
+                # 没有指定任何边框样式，更新颜色和大小（作用于已有边框）
+                current_val = elem.get(qn("w:val"))
+                if current_val is not None:
+                    elem.set(qn("w:sz"), str(border_size*8))
+                    elem.set(qn("w:color"), border_color)
 
     def set_table_alignment(self, style_name: str, alignment: str = "center") -> None:
         """

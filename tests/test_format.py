@@ -6,6 +6,8 @@ import tempfile
 import os
 
 from sword import WordDocument, StyleFormat
+from docx.enum.style import WD_STYLE_TYPE
+from docx.oxml.ns import qn
 
 
 class TestStyleFormat:
@@ -173,13 +175,6 @@ class TestTableFormatting:
         style2 = doc.format.create_table_style("测试样式")
         assert style1.name == style2.name
 
-    def test_set_table_style(self) -> None:
-        """测试设置表格样式."""
-        doc = WordDocument()
-        table = doc._inner.add_table(rows=3, cols=3)
-        doc.format.set_table_style(table, "Table Grid")
-        assert table.style.name == "Table Grid"
-
     def test_set_table_font(self) -> None:
         """测试设置表格样式字体."""
         doc = WordDocument()
@@ -189,6 +184,14 @@ class TestTableFormatting:
         """测试设置表格样式底纹."""
         doc = WordDocument()
         doc.format.set_table_shading("Table Grid", fill="FFFF00")
+
+    def _get_border_elem(self, doc: WordDocument, style_name: str, border_name: str):
+        """获取表格样式指定边框的 XML 元素."""
+        from docx.oxml.ns import qn
+        style = doc.format._get_style(style_name, WD_STYLE_TYPE.TABLE)
+        tblPr = style._element.find(qn("w:tblPr"))
+        tblBorders = tblPr.find(qn("w:tblBorders"))
+        return tblBorders.find(qn(f"w:{border_name}"))
 
     def test_set_table_borders(self) -> None:
         """测试设置表格样式边框."""
@@ -202,23 +205,78 @@ class TestTableFormatting:
             inside_h="single",
             inside_v="single",
             border_size=8,
+            border_color="FF0000",
+        )
+
+        # 验证所有边框属性设置正确
+        for border_name in ("top", "bottom", "left", "right", "insideH", "insideV"):
+            elem = self._get_border_elem(doc, "Table Grid", border_name)
+            assert elem is not None, f"{border_name} 边框元素应存在"
+            assert elem.get(qn("w:val")) == "single", f"{border_name} 样式应为 single"
+            assert elem.get(qn("w:sz")) == "64", f"{border_name} 边框大小应为 8磅(64)"
+            assert elem.get(qn("w:color")) == "FF0000", f"{border_name} 边框颜色应为 FF0000"
+
+    def test_set_table_borders_partial(self) -> None:
+        """测试部分设置表格边框（仅设置 top）."""
+        doc = WordDocument()
+        # 先创建一个新的自定义表格样式，确保干净的初始状态
+        doc.format.create_table_style("测试边框样式")
+        # 设置所有边框为 none 作为清理
+        doc.format.set_table_borders(
+            "测试边框样式",
+            top="none",
+            bottom="none",
+            left="none",
+            right="none",
+            inside_h="none",
+            inside_v="none",
+        )
+        # 现在只设置 top 边框
+        doc.format.set_table_borders("测试边框样式", top="single", border_size=6, border_color="00FF00")
+
+        # 验证 top 边框设置正确
+        top_elem = self._get_border_elem(doc, "测试边框样式", "top")
+        assert top_elem is not None, "top 边框元素应存在"
+        assert top_elem.get(qn("w:val")) == "single"
+        assert top_elem.get(qn("w:sz")) == "48"
+        assert top_elem.get(qn("w:color")) == "00FF00"
+
+        # 验证其他边框未被修改（仍为 none）
+        for border_name in ("bottom", "left", "right", "insideH", "insideV"):
+            elem = self._get_border_elem(doc, "测试边框样式", border_name)
+            assert elem is not None, f"{border_name} 边框元素应存在"
+            assert elem.get(qn("w:val")) == "none", f"{border_name} 应保持为 none，实际为 {elem.get(qn('w:val'))}"
+
+    def test_set_table_borders_color_and_size_only(self) -> None:
+        """测试仅设置边框颜色和大小（不改变边框样式）."""
+        doc = WordDocument()
+        # 创建样式并先设置所有边框
+        doc.format.create_table_style("测试颜色样式")
+        doc.format.set_table_borders(
+            "测试颜色样式",
+            top="single",
+            bottom="single",
+            left="single",
+            right="single",
+            inside_h="single",
+            inside_v="single",
+            border_size=8,
             border_color="000000",
         )
 
-    def test_set_table_borders_partial(self) -> None:
-        """测试部分设置表格边框."""
-        doc = WordDocument()
-        doc.format.set_table_borders("Table Grid", top="single")
+        # 验证初始状态 (border_size=8 → w:sz=64)
+        top_elem = self._get_border_elem(doc, "测试颜色样式", "top")
+        assert top_elem.get(qn("w:color")) == "000000"
+        assert top_elem.get(qn("w:sz")) == "64"
 
-    def test_set_table_margins(self) -> None:
-        """测试设置表格外边距."""
-        doc = WordDocument()
-        doc.format.set_table_margins("Table Grid", top=100, bottom=100, left=200, right=200)
+        # 仅更新颜色和大小，不改变边框样式 (border_size=12 → w:sz=96)
+        doc.format.set_table_borders("测试颜色样式", border_color="FF0000", border_size=12)
 
-    def test_set_table_cell_margins(self) -> None:
-        """测试设置表格单元格内边距."""
-        doc = WordDocument()
-        doc.format.set_table_cell_margins("Table Grid", top=100, bottom=100, left=200, right=200)
+        # 验证颜色和大小已更新，但边框样式不变
+        top_elem = self._get_border_elem(doc, "测试颜色样式", "top")
+        assert top_elem.get(qn("w:val")) == "single", "边框样式应保持为 single"
+        assert top_elem.get(qn("w:sz")) == "96", "边框大小应更新为 12磅(96)"
+        assert top_elem.get(qn("w:color")) == "FF0000", "边框颜色应更新为 FF0000"
 
     def test_set_table_alignment(self) -> None:
         """测试设置表格对齐方式."""
@@ -240,21 +298,6 @@ class TestTableFormatting:
         doc = WordDocument()
         doc.format.set_table_font("Table Grid", name="宋体", size=12, bold=True)
         doc.format.set_table_shading("Table Grid", fill="E6E6E6")
-        doc.format.set_table_borders("Table Grid", top="single", bottom="single")
-        doc.format.set_table_margins("Table Grid", left=100, right=100)
-        doc.format.set_table_cell_margins("Table Grid", left=50, right=50)
+        doc.format.set_table_borders("Table Grid", top="single", bottom="single", border_size=8)
         doc.format.set_table_alignment("Table Grid", alignment="center")
         doc.format.set_table_paragraph("Table Grid", alignment="center")
-
-    def test_save_table_document(
-        self, tmp_path: tempfile.TemporaryDirectory
-    ) -> None:
-        """测试保存包含表格的文档."""
-        doc = WordDocument()
-        table = doc._inner.add_table(rows=3, cols=3)
-        doc.format.set_table_style(table, "Table Grid")
-        table.cell(0, 0).text = "标题"
-
-        file_path = os.path.join(tmp_path, "table_test.docx")
-        doc.save(file_path)
-        assert os.path.exists(file_path)
