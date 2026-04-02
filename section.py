@@ -6,6 +6,8 @@ from typing import Any
 
 from docx.document import Document as DocxDocument
 
+from sword.table import WordTable
+
 
 class WordSection:
     """封装 Word 文档中的章节，支持添加标题、段落等内容."""
@@ -70,6 +72,25 @@ class WordSection:
     def add_page_break(self) -> None:
         """添加分页符."""
         self._doc.add_page_break()
+
+    def add_table(
+        self,
+        rows: int,
+        cols: int,
+        style: str | None = None,
+    ) -> WordTable:
+        """
+        添加表格.
+
+        Args:
+            rows: 表格行数.
+            cols: 表格列数.
+            style: 表格样式（如 "Table Grid"，可选）.
+
+        Returns:
+            WordTable: 创建的表格封装对象.
+        """
+        return WordTable(self._doc, rows, cols, style)
 
     def add_section(self, title: str | None = None) -> WordSection:
         """

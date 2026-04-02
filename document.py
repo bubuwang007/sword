@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import subprocess
+import os
 from typing import Any
 
 from docx import Document
@@ -112,7 +112,7 @@ class WordDocument:
         """
         self._doc.save(path)
         if open_after_save:
-            subprocess.Popen(["start", "", path], shell=True)
+            os.startfile(path)
 
     @property
     def _inner(self) -> DocxDocument:

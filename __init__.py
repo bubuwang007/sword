@@ -2,7 +2,8 @@
 
 from sword.document import WordDocument
 from sword.section import WordSection
+from sword.table import WordTable
 from sword.format import StyleFormat
 
 __version__ = "0.1.0"
-__all__ = ["WordDocument", "WordSection", "StyleFormat"]
+__all__ = ["WordDocument", "WordSection", "WordTable", "StyleFormat"]

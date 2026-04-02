@@ -44,6 +44,14 @@ class TestWordSection:
         section.add_page_break()
         section.add_paragraph("新页面内容")
 
+    def test_add_table(self) -> None:
+        """测试添加表格."""
+        doc = WordDocument()
+        section = WordSection(doc._inner)
+        table = section.add_table(rows=3, cols=3, style="Table Grid")
+        assert len(table.table.rows) == 3
+        assert len(table.table.columns) == 3
+
     def test_section_content_access(self) -> None:
         """测试章节内容访问."""
         doc = WordDocument()
