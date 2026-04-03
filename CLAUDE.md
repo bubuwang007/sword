@@ -19,11 +19,19 @@ sword/
 ├── __init__.py       # 包导出
 ├── document.py       # WordDocument 主类
 ├── section.py        # WordSection 章节类
+├── table.py          # WordTable 表格类
+├── cell.py           # WordCell 单元格类
+├── paragraph.py      # WordParagraph 段落类
+├── run.py            # WordRun 文本Run类
 ├── format.py         # StyleFormat 样式类
 └── tests/
     ├── __init__.py
     ├── test_document.py
-    └── test_section.py
+    ├── test_section.py
+    ├── test_table.py
+    ├── test_cell.py
+    ├── test_format.py
+    └── test_paragraph.py
 ```
 
 ## 核心 API
@@ -46,6 +54,7 @@ doc.save("output.docx")
 
 **主要方法：**
 - `add_section(title, title_level)` - 添加章节
+- `add_paragraph(text, style)` - 添加段落
 - `set_page_break_between_sections(enabled)` - 设置章节分页
 - `set_start_number(level, number)` - 设置起始编号
 - `set_table_of_contents()` - 插入目录
@@ -71,6 +80,74 @@ subsection.add_numbered_heading("子子节")  # 输出: "1.1.1 子子节"
 - `add_paragraph(text, style)` - 添加段落
 - `add_page_break()` - 添加分页符
 - `add_section(title)` - 添加子章节（自动延续编号）
+
+### WordTable
+
+表格类，支持创建表格和单元格操作。
+
+```python
+table = section.add_table(rows=3, cols=3, style="Table Grid")
+cell = table.cell(0, 0)
+cell.text = "内容"
+cell.set_shading("FFFF00")
+```
+
+**主要方法：**
+- `cell(row, col)` - 获取指定单元格
+- `iter_cells()` / `iter_rows()` / `iter_cols()` - 遍历
+- `get_row(index)` / `get_column(index)` - 获取行/列
+
+### WordCell
+
+单元格封装类，提供单元格格式化功能。
+
+```python
+cell = table.cell(0, 0)
+cell.text = "标题"
+cell.set_shading("FFFF00")
+cell.set_borders(top="single", border_size=8)
+cell.set_vertical_alignment("center")
+cell.set_width(500, unit="dxa")
+```
+
+**主要方法：**
+- `text` - 获取/设置单元格文本
+- `set_shading(color)` - 设置底纹
+- `set_borders(...)` - 设置边框
+- `set_vertical_alignment(align)` - 设置垂直对齐
+- `set_width(width, unit)` - 设置宽度
+- `add_paragraph(text)` - 添加段落
+- `iter_paragraphs()` - 遍历段落
+
+### WordParagraph
+
+段落封装类，支持 Run 管理。
+
+```python
+para = doc.add_paragraph("段落文本")
+run = para.add_run("加粗文本")
+for run in para.iter_runs():
+    print(run.text)
+```
+
+**主要方法：**
+- `text` - 获取/设置段落文本
+- `add_run(text)` - 添加文本Run
+- `iter_runs()` - 遍历所有Run
+- `get_run(index)` - 获取指定索引的Run
+
+### WordRun
+
+文本Run封装类，提供文本级别格式化。
+
+```python
+run = para.add_run("文本")
+run.text = "新文本"
+```
+
+**主要方法：**
+- `text` - 获取/设置Run文本
+- `inner` - 获取底层 python-docx Run 对象
 
 ## 编码规范
 
