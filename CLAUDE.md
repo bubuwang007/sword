@@ -24,6 +24,7 @@ sword/
 ├── paragraph.py      # WordParagraph 段落类
 ├── run.py            # WordRun 文本Run类
 ├── format.py         # StyleFormat 样式类
+├── batch.py          # BatchStyle 批量样式类
 └── tests/
     ├── __init__.py
     ├── test_document.py
@@ -31,7 +32,8 @@ sword/
     ├── test_table.py
     ├── test_cell.py
     ├── test_format.py
-    └── test_paragraph.py
+    ├── test_paragraph.py
+    └── test_batch.py
 ```
 
 ## 核心 API
@@ -148,6 +150,40 @@ run.text = "新文本"
 **主要方法：**
 - `text` - 获取/设置Run文本
 - `inner` - 获取底层 python-docx Run 对象
+
+### BatchStyle
+
+批量样式设置类，支持链式调用一键配置多类样式。
+
+```python
+from sword import WordDocument, BatchStyle
+
+doc = WordDocument()
+batch = BatchStyle(doc._inner)
+batch.set_all_headings_font(name="微软雅黑", size=16, bold=True) \
+      .set_all_headings_paragraph(space_before=12, space_after=6) \
+      .set_normal_font(name="宋体", size=12) \
+      .set_normal_paragraph(first_line_indent=2) \
+      .set_table_font("Table Grid", name="宋体", size=11) \
+      .set_table_borders("Table Grid", top="single", bottom="single") \
+      .set_table_shading("Table Grid", fill="FFFFFF") \
+      .enable_all_outline_levels()
+```
+
+**主要方法：**
+- `set_heading_font(level, ...)` - 设置指定级别标题字体
+- `set_heading_paragraph(level, ...)` - 设置指定级别标题段落
+- `set_all_headings_font(...)` - 设置所有级别标题字体
+- `set_all_headings_paragraph(...)` - 设置所有级别标题段落
+- `set_normal_font(...)` - 设置正文字体
+- `set_normal_paragraph(...)` - 设置正文段落
+- `set_table_font(style_name, ...)` - 设置表格字体
+- `set_table_borders(style_name, ...)` - 设置表格边框
+- `set_table_shading(style_name, ...)` - 设置表格底纹
+- `set_table_alignment(style_name, ...)` - 设置表格对齐
+- `set_table_paragraph(style_name, ...)` - 设置表格段落
+- `enable_outline_level(style_name, level)` - 启用大纲级别
+- `enable_all_outline_levels()` - 为所有标题启用大纲级别
 
 ## 编码规范
 

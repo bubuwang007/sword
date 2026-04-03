@@ -7,6 +7,16 @@ from sword.cell import WordCell
 from sword.paragraph import WordParagraph
 from sword.run import WordRun
 from sword.format import StyleFormat
+from .format_factory import *
 
 __version__ = "0.1.0"
-__all__ = ["WordDocument", "WordSection", "WordTable", "WordCell", "WordParagraph", "WordRun", "StyleFormat"]
+__all__ = [
+    "WordDocument",
+    "WordSection",
+    "WordTable",
+    "WordCell",
+    "WordParagraph",
+    "WordRun",
+    "StyleFormat",
+    "BatchStyle",
+] + format_factory.__all__

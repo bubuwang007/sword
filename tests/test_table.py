@@ -14,21 +14,21 @@ class TestWordTable:
     def test_create_table(self) -> None:
         """测试创建表格."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3, style="Table Grid")
+        table = WordTable(doc.inner, rows=3, cols=3, style="Table Grid")
         assert len(table.table.rows) == 3
         assert len(table.table.columns) == 3
 
     def test_set_style(self) -> None:
         """测试设置表格样式."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         table.set_style("Table Grid")
         assert table.table.style.name == "Table Grid"
 
     def test_cell(self) -> None:
         """测试获取单元格."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.text = "测试内容"
         assert cell.text == "测试内容"
@@ -36,26 +36,26 @@ class TestWordTable:
     def test_context_manager(self) -> None:
         """测试上下文管理器."""
         doc = WordDocument()
-        with WordTable(doc._inner, rows=3, cols=3) as table:
+        with WordTable(doc.inner, rows=3, cols=3) as table:
             table.cell(0, 0).text = "测试内容"
             assert table.cell(0, 0).text == "测试内容"
 
     def test_rows_property(self) -> None:
         """测试 rows 属性."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=4, cols=3)
+        table = WordTable(doc.inner, rows=4, cols=3)
         assert table.rows == 4
 
     def test_cols_property(self) -> None:
         """测试 cols 属性."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=5)
+        table = WordTable(doc.inner, rows=3, cols=5)
         assert table.cols == 5
 
     def test_iter_cells(self) -> None:
         """测试 iter_cells 方法."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=2, cols=2)
+        table = WordTable(doc.inner, rows=2, cols=2)
         table.cell(0, 0).text = "A1"
         table.cell(0, 1).text = "A2"
         table.cell(1, 0).text = "B1"
@@ -69,7 +69,7 @@ class TestWordTable:
     def test_iter_rows(self) -> None:
         """测试 iter_rows 方法."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=2, cols=2)
+        table = WordTable(doc.inner, rows=2, cols=2)
         table.cell(0, 0).text = "A1"
         table.cell(0, 1).text = "A2"
         table.cell(1, 0).text = "B1"
@@ -83,7 +83,7 @@ class TestWordTable:
     def test_iter_cols(self) -> None:
         """测试 iter_cols 方法."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=2, cols=2)
+        table = WordTable(doc.inner, rows=2, cols=2)
         table.cell(0, 0).text = "A1"
         table.cell(0, 1).text = "A2"
         table.cell(1, 0).text = "B1"
@@ -97,7 +97,7 @@ class TestWordTable:
     def test_get_row(self) -> None:
         """测试 get_row 方法."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         table.cell(1, 0).text = "R1C0"
         table.cell(1, 1).text = "R1C1"
         table.cell(1, 2).text = "R1C2"
@@ -109,7 +109,7 @@ class TestWordTable:
     def test_get_column(self) -> None:
         """测试 get_column 方法."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         table.cell(0, 1).text = "R0C1"
         table.cell(1, 1).text = "R1C1"
         table.cell(2, 1).text = "R2C1"
@@ -118,12 +118,10 @@ class TestWordTable:
         assert len(col) == 3
         assert [cell.text for cell in col] == ["R0C1", "R1C1", "R2C1"]
 
-    def test_save_table_document(
-        self, tmp_path: tempfile.TemporaryDirectory
-    ) -> None:
+    def test_save_table_document(self, tmp_path: tempfile.TemporaryDirectory) -> None:
         """测试保存包含表格的文档."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3, style="Table Grid")
+        table = WordTable(doc.inner, rows=3, cols=3, style="Table Grid")
         table.cell(0, 0).text = "标题"
 
         file_path = os.path.join(tmp_path, "table_test.docx")

@@ -13,33 +13,33 @@ class TestWordSection:
     def test_create_section_with_title(self) -> None:
         """测试创建带标题的章节."""
         doc = WordDocument()
-        section = WordSection(doc._inner, title="第一章")
+        section = WordSection(doc.inner, title="第一章")
         assert section.title == "第一章"
 
     def test_create_section_without_title(self) -> None:
         """测试创建不带标题的章节."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         assert section.title is None
 
     def test_add_heading(self) -> None:
         """测试添加标题."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         section.add_numbered_heading("第一章")
         section.add_numbered_heading("小节")
 
     def test_add_paragraph(self) -> None:
         """测试添加段落."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         section.add_paragraph("这是第一段内容。")
         section.add_paragraph("这是第二段内容。")
 
     def test_add_page_break(self) -> None:
         """测试添加分页符."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         section.add_paragraph("章节内容")
         section.add_page_break()
         section.add_paragraph("新页面内容")
@@ -47,7 +47,7 @@ class TestWordSection:
     def test_add_table(self) -> None:
         """测试添加表格."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         table = section.add_table(rows=3, cols=3, style="Table Grid")
         assert len(table.table.rows) == 3
         assert len(table.table.columns) == 3
@@ -55,9 +55,9 @@ class TestWordSection:
     def test_section_content_access(self) -> None:
         """测试章节内容访问."""
         doc = WordDocument()
-        section = WordSection(doc._inner)
+        section = WordSection(doc.inner)
         section.add_paragraph("Test content")
-        assert len(doc._inner.paragraphs) > 0
+        assert len(doc.inner.paragraphs) > 0
 
     def test_add_numbered_heading(self) -> None:
         """测试添加带自动编号的标题."""
@@ -78,7 +78,7 @@ class TestWordSection:
         """测试上下文管理器."""
         doc = WordDocument()
         doc.set_page_break_between_sections(False)
-        with WordSection(doc._inner) as section:
+        with WordSection(doc.inner) as section:
             section.add_paragraph("Test content")
             assert section.title is None
 

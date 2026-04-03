@@ -15,7 +15,7 @@ class TestWordCell:
     def _get_cell_elem(self, doc: WordDocument, row: int, col: int):
         """获取单元格 XML 元素."""
         # 通过 document 内部结构获取单元格元素
-        body = doc._inner.element.body
+        body = doc.inner.element.body
         tbl = body.find(qn("w:tbl"))
         if tbl is not None:
             tr = tbl.findall(qn("w:tr"))[row]
@@ -26,7 +26,7 @@ class TestWordCell:
     def test_cell_text(self) -> None:
         """测试获取和设置单元格文本."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.text = "测试内容"
         assert cell.text == "测试内容"
@@ -34,14 +34,14 @@ class TestWordCell:
     def test_cell_inner(self) -> None:
         """测试获取底层 Cell 对象."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         assert cell.inner is not None
 
     def test_cell_context_manager(self) -> None:
         """测试上下文管理器."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         with table.cell(0, 0) as cell:
             cell.text = "测试内容"
         assert table.cell(0, 0).text == "测试内容"
@@ -49,7 +49,7 @@ class TestWordCell:
     def test_set_shading(self) -> None:
         """测试设置单元格底纹."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_shading("FFFF00")
 
@@ -63,7 +63,7 @@ class TestWordCell:
     def test_set_borders(self) -> None:
         """测试设置单元格边框."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_borders(
             top="single",
@@ -89,7 +89,7 @@ class TestWordCell:
     def test_set_vertical_alignment(self) -> None:
         """测试设置单元格垂直对齐."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_vertical_alignment("center")
 
@@ -101,7 +101,7 @@ class TestWordCell:
     def test_set_vertical_alignment_top(self) -> None:
         """测试设置单元格垂直对齐为顶部."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_vertical_alignment("top")
 
@@ -113,7 +113,7 @@ class TestWordCell:
     def test_set_vertical_alignment_bottom(self) -> None:
         """测试设置单元格垂直对齐为底部."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_vertical_alignment("bottom")
 
@@ -125,7 +125,7 @@ class TestWordCell:
     def test_set_width_auto(self) -> None:
         """测试设置单元格宽度为自动."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_width(0, unit="auto")
 
@@ -138,7 +138,7 @@ class TestWordCell:
     def test_set_width_dxa(self) -> None:
         """测试设置单元格宽度为固定值."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_width(1000, unit="dxa")
 
@@ -151,7 +151,7 @@ class TestWordCell:
     def test_set_width_pct(self) -> None:
         """测试设置单元格宽度为百分比."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_width(50, unit="pct")
 
@@ -164,7 +164,7 @@ class TestWordCell:
     def test_set_borders_partial(self) -> None:
         """测试部分设置单元格边框."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
+        table = WordTable(doc.inner, rows=3, cols=3)
         cell = table.cell(0, 0)
         cell.set_borders(top="single", border_size=6, border_color="00FF00")
 
@@ -182,7 +182,7 @@ class TestWordCell:
     ) -> None:
         """测试保存包含格式单元格的文档."""
         doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3, style="Table Grid")
+        table = WordTable(doc.inner, rows=3, cols=3, style="Table Grid")
         cell = table.cell(0, 0)
         cell.text = "标题"
         cell.set_shading("FFFF00")

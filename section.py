@@ -7,6 +7,7 @@ from typing import Any
 from docx.document import Document as DocxDocument
 
 from sword.table import WordTable
+from sword.paragraph import WordParagraph
 
 
 class WordSection:
@@ -59,15 +60,19 @@ class WordSection:
 
         self._doc.add_heading(full_text, level=self._title_level)
 
-    def add_paragraph(self, text: str = "", style: str | None = None) -> None:
+    def add_paragraph(self, text: str = "", style: str | None = None) -> WordParagraph:
         """
         添加段落.
 
         Args:
             text: 段落文本.
             style: 段落样式（可选）.
+
+        Returns:
+            WordParagraph: 创建的段落封装对象。
         """
-        self._doc.add_paragraph(text, style=style)
+        para = self._doc.add_paragraph(text, style=style)
+        return WordParagraph(para)
 
     def add_page_break(self) -> None:
         """添加分页符."""

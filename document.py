@@ -130,7 +130,7 @@ class WordDocument:
             os.startfile(path)
 
     @property
-    def _inner(self) -> DocxDocument:
+    def inner(self) -> DocxDocument:
         """访问底层的 python-docx Document 对象."""
         return self._doc
 

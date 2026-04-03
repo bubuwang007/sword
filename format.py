@@ -125,6 +125,8 @@ class StyleFormat:
         name: str | None = None,
         size: int | None = None,
         bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
         color: tuple[int, int, int] | None = None,
         east_asia: str | None = None,
         ascii: str | None = None,
@@ -138,6 +140,8 @@ class StyleFormat:
             name: 字体名称（同时设置中英文）.
             size: 字体大小（磅）.
             bold: 是否加粗.
+            italic: 是否斜体.
+            underline: 是否下划线.
             color: RGB 颜色元组.
             east_asia: 中文字体名称.
             ascii: 西文字体名称.
@@ -152,6 +156,10 @@ class StyleFormat:
             font.size = Pt(size)
         if bold is not None:
             font.bold = bold
+        if italic is not None:
+            font.italic = italic
+        if underline is not None:
+            font.underline = underline
         if color is not None:
             font.color.rgb = RGBColor(*color)
 
@@ -200,7 +208,7 @@ class StyleFormat:
             )
 
         # 缩进使用字符计数属性
-        if any([left_indent, right_indent, first_line_indent, hanging_indent]):
+        if any(x is not None for x in [left_indent, right_indent, first_line_indent, hanging_indent]):
             pPr = self._ensure_elem(style._element, "pPr")
             ind = self._ensure_elem(pPr, "ind")
 
@@ -221,6 +229,8 @@ class StyleFormat:
         name: str | None = None,
         size: int | None = None,
         bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
         color: tuple[int, int, int] | None = None,
         east_asia: str | None = None,
         ascii: str | None = None,
@@ -234,23 +244,14 @@ class StyleFormat:
             name: 字体名称（同时设置中英文）.
             size: 字体大小（磅）.
             bold: 是否加粗.
+            italic: 是否斜体.
+            underline: 是否下划线.
             color: RGB 颜色元组（如 (255, 0, 0)）.
             east_asia: 中文字体名称（如 "宋体"）.
             ascii: 西文字体名称（如 "Times New Roman"）.
             h_ansi: 高 ANSI 字体名称.
         """
-        style = self._get_style(f"Heading {level}")
-        if style is not None:
-            self._apply_font(
-                style.font,
-                name=name,
-                size=size,
-                bold=bold,
-                color=color,
-                east_asia=east_asia,
-                ascii=ascii,
-                h_ansi=h_ansi,
-            )
+        self.set_style_font(f"Heading {level}", name, size, bold, italic, underline, color, east_asia, ascii, h_ansi)
 
     def set_heading_paragraph(
         self,
@@ -280,26 +281,16 @@ class StyleFormat:
             first_line_indent: 首行缩进（字符数）。
             hanging_indent: 悬挂缩进（字符数）。
         """
-        style = self._get_style(f"Heading {level}")
-        if style is not None:
-            self._apply_paragraph(
-                style,
-                alignment=alignment,
-                space_before=space_before,
-                space_after=space_after,
-                line_spacing=line_spacing,
-                line_spacing_rule=line_spacing_rule,
-                left_indent=left_indent,
-                right_indent=right_indent,
-                first_line_indent=first_line_indent,
-                hanging_indent=hanging_indent,
-            )
+        self.set_style_paragraph(f"Heading {level}", alignment, space_before, space_after, line_spacing, line_spacing_rule, left_indent, right_indent, first_line_indent, hanging_indent)
 
     def set_normal_font(
         self,
         name: str | None = None,
         size: int | None = None,
         bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
+        color: tuple[int, int, int] | None = None,
         east_asia: str | None = None,
         ascii: str | None = None,
         h_ansi: str | None = None,
@@ -311,21 +302,14 @@ class StyleFormat:
             name: 字体名称（同时设置中英文）.
             size: 字体大小（磅）.
             bold: 是否加粗.
+            italic: 是否斜体.
+            underline: 是否下划线.
+            color: RGB 颜色元组（如 (255, 0, 0)）.
             east_asia: 中文字体名称（如 "宋体"）.
             ascii: 西文字体名称（如 "Times New Roman"）.
             h_ansi: 高 ANSI 字体名称.
         """
-        style = self._get_style("Normal")
-        if style is not None:
-            self._apply_font(
-                style.font,
-                name=name,
-                size=size,
-                bold=bold,
-                east_asia=east_asia,
-                ascii=ascii,
-                h_ansi=h_ansi,
-            )
+        self.set_style_font("Normal", name, size, bold, italic, underline, color, east_asia, ascii, h_ansi)
 
     def set_normal_paragraph(
         self,
@@ -353,20 +337,7 @@ class StyleFormat:
             first_line_indent: 首行缩进（字符数）。
             hanging_indent: 悬挂缩进（字符数）。
         """
-        style = self._get_style("Normal")
-        if style is not None:
-            self._apply_paragraph(
-                style,
-                alignment=alignment,
-                space_before=space_before,
-                space_after=space_after,
-                line_spacing=line_spacing,
-                line_spacing_rule=line_spacing_rule,
-                left_indent=left_indent,
-                right_indent=right_indent,
-                first_line_indent=first_line_indent,
-                hanging_indent=hanging_indent,
-            )
+        self.set_style_paragraph("Normal", alignment, space_before, space_after, line_spacing, line_spacing_rule, left_indent, right_indent, first_line_indent, hanging_indent)
 
     def enable_outline_level(self, style_name: str, level: int) -> None:
         """
@@ -383,6 +354,94 @@ class StyleFormat:
         pPr = self._ensure_elem(style._element, "pPr")
         outlineLvl = self._ensure_elem(pPr, "outlineLvl")
         outlineLvl.set(qn("w:val"), str(level))
+
+    # ==================== 通用样式方法 ====================
+
+    def set_style_font(
+        self,
+        style_name: str,
+        name: str | None = None,
+        size: int | None = None,
+        bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
+        color: tuple[int, int, int] | None = None,
+        east_asia: str | None = None,
+        ascii: str | None = None,
+        h_ansi: str | None = None,
+    ) -> None:
+        """
+        设置任意样式的字体格式.
+
+        Args:
+            style_name: 样式名称.
+            name: 字体名称（同时设置中英文）.
+            size: 字体大小（磅）.
+            bold: 是否加粗.
+            italic: 是否斜体.
+            underline: 是否下划线.
+            color: RGB 颜色元组.
+            east_asia: 中文字体名称.
+            ascii: 西文字体名称.
+            h_ansi: 高 ANSI 字体名称.
+        """
+        style = self._get_style(style_name)
+        if style is not None:
+            self._apply_font(
+                style.font,
+                name=name,
+                size=size,
+                bold=bold,
+                italic=italic,
+                underline=underline,
+                color=color,
+                east_asia=east_asia,
+                ascii=ascii,
+                h_ansi=h_ansi,
+            )
+
+    def set_style_paragraph(
+        self,
+        style_name: str,
+        alignment: str | None = None,
+        space_before: int | None = None,
+        space_after: int | None = None,
+        line_spacing: int | float | None = None,
+        line_spacing_rule: str | None = None,
+        left_indent: int | None = None,
+        right_indent: int | None = None,
+        first_line_indent: int | None = None,
+        hanging_indent: int | None = None,
+    ) -> None:
+        """
+        设置任意样式的段落格式.
+
+        Args:
+            style_name: 样式名称.
+            alignment: 对齐方式.
+            space_before: 段前间距（磅）.
+            space_after: 段后间距（磅）.
+            line_spacing: 行距值.
+            line_spacing_rule: 行距模式.
+            left_indent: 左边缩进（字符数）.
+            right_indent: 右边缩进（字符数）.
+            first_line_indent: 首行缩进（字符数）。
+            hanging_indent: 悬挂缩进（字符数）。
+        """
+        style = self._get_style(style_name)
+        if style is not None:
+            self._apply_paragraph(
+                style,
+                alignment=alignment,
+                space_before=space_before,
+                space_after=space_after,
+                line_spacing=line_spacing,
+                line_spacing_rule=line_spacing_rule,
+                left_indent=left_indent,
+                right_indent=right_indent,
+                first_line_indent=first_line_indent,
+                hanging_indent=hanging_indent,
+            )
 
     # ==================== 样式创建方法 ====================
 
@@ -430,6 +489,19 @@ class StyleFormat:
 
         return style
 
+    def create_paragraph_style(self, style_name: str, based_on: str | None = None):
+        """
+        创建段落样式.
+
+        Args:
+            style_name: 样式名称.
+            based_on: 基础样式名称（可选，如 "Normal"）。
+
+        Returns:
+            创建的样式对象，已存在则返回现有样式。
+        """
+        return self.create_style(style_name, style_type="paragraph", based_on=based_on)
+
     def create_table_style(self, style_name: str, based_on: str | None = None):
         """
         创建表格样式.
@@ -451,6 +523,8 @@ class StyleFormat:
         name: str | None = None,
         size: int | None = None,
         bold: bool | None = None,
+        italic: bool | None = None,
+        underline: bool | None = None,
         color: tuple[int, int, int] | None = None,
         east_asia: str | None = None,
         ascii: str | None = None,
@@ -463,21 +537,16 @@ class StyleFormat:
             name: 字体名称（同时设置中英文）。
             size: 字体大小（磅）.
             bold: 是否加粗.
+            italic: 是否斜体.
+            underline: 是否下划线.
             color: RGB 颜色元组.
             east_asia: 中文字体名称.
             ascii: 西文字体名称.
         """
-        style = self._get_style(style_name, WD_STYLE_TYPE.TABLE)
-        if style is not None:
-            self._apply_font(
-                style.font,
-                name=name,
-                size=size,
-                bold=bold,
-                color=color,
-                east_asia=east_asia,
-                ascii=ascii,
-            )
+        if self._get_style(style_name, WD_STYLE_TYPE.TABLE) is None:
+            raise ValueError(f"Table style '{style_name}' does not exist.")
+
+        self.set_style_font(style_name, name, size, bold, italic, underline, color, east_asia, ascii, None)
 
     def set_table_shading(self, style_name: str, fill: str) -> None:
         """
@@ -587,7 +656,7 @@ class StyleFormat:
         line_spacing_rule: str | None = None,
         left_indent: int | None = None,
         right_indent: int | None = None,
-        first_line_indent: int | None = None,   
+        first_line_indent: int | None = None,
         hanging_indent: int | None = None,
     ) -> None:
         """
@@ -605,17 +674,4 @@ class StyleFormat:
             first_line_indent: 首行缩进（字符数）。
             hanging_indent: 悬挂缩进（字符数）。
         """
-        style = self._get_style(style_name, WD_STYLE_TYPE.TABLE)
-        if style is not None:
-            self._apply_paragraph(
-                style,
-                alignment=alignment,
-                space_before=space_before,
-                space_after=space_after,
-                line_spacing=line_spacing,
-                line_spacing_rule=line_spacing_rule,
-                left_indent=left_indent,
-                right_indent=right_indent,
-                first_line_indent=first_line_indent,
-                hanging_indent=hanging_indent,
-            )
+        self.set_style_paragraph(style_name, alignment, space_before, space_after, line_spacing, line_spacing_rule, left_indent, right_indent, first_line_indent, hanging_indent)

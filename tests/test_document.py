@@ -13,7 +13,7 @@ class TestWordDocument:
     def test_create_new_document(self) -> None:
         """测试创建新文档."""
         doc = WordDocument()
-        assert doc._inner is not None
+        assert doc.inner is not None
 
     def test_set_page_break_between_sections(self) -> None:
         """测试设置章节间分页."""
