@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterator
 
 from docx.table import Table
 from docx.document import Document as DocxDocument
@@ -39,6 +39,16 @@ class WordTable:
         """获取底层的 python-docx Table 对象."""
         return self._table
 
+    @property
+    def rows(self) -> int:
+        """获取表格行数."""
+        return len(self._table.rows)
+
+    @property
+    def cols(self) -> int:
+        """获取表格列数."""
+        return len(self._table.columns)
+
     def cell(self, row: int, col: int) -> WordCell:
         """
         获取单元格.
@@ -63,6 +73,63 @@ class WordTable:
             self._table.style = None
         else:
             self._table.style = style
+
+    def iter_cells(self) -> Iterator[WordCell]:
+        """
+        遍历表格中所有单元格.
+
+        Yields:
+            WordCell 对象，按行优先顺序。
+        """
+        for row in self._table.rows:
+            for cell in row.cells:
+                yield WordCell(cell)
+
+    def iter_rows(self) -> Iterator[list[WordCell]]:
+        """
+        按行遍历表格.
+
+        Yields:
+            每行的 WordCell 对象列表。
+        """
+        for row in self._table.rows:
+            yield [WordCell(cell) for cell in row.cells]
+
+    def iter_cols(self) -> Iterator[list[WordCell]]:
+        """
+        按列遍历表格.
+
+        Yields:
+            每列的 WordCell 对象列表。
+        """
+        for column in self._table.columns:
+            yield [WordCell(cell) for cell in column.cells]
+
+    def get_row(self, row_index: int) -> list[WordCell]:
+        """
+        获取指定行的所有单元格.
+
+        Args:
+            row_index: 行索引（从 0 开始）。
+
+        Returns:
+            WordCell 对象列表。
+        """
+        row = self._table.rows[row_index]
+        return [WordCell(cell) for cell in row.cells]
+
+    def get_column(self, col_index: int) -> list[WordCell]:
+        """
+        获取指定列的所有单元格.
+
+        Args:
+            col_index: 列索引（从 0 开始）。
+
+        Returns:
+            WordCell 对象列表。
+        """
+        column = self._table.columns[col_index]
+        return [WordCell(cell) for cell in column.cells]
 
     def __enter__(self) -> WordTable:
         return self

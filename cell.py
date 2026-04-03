@@ -158,27 +158,6 @@ class WordCell:
         vAlign = self._ensure_elem(tcPr, "vAlign")
         vAlign.set(qn("w:val"), vAlign_map[alignment])
 
-    def set_horizontal_alignment(self, alignment: str = "left") -> None:
-        """
-        设置单元格水平对齐方式.
-
-        Args:
-            alignment: 对齐方式（"left", "center", "right", "justify"）。
-        """
-        jc_map = {
-            "left": "left",
-            "center": "center",
-            "right": "right",
-            "justify": "both",
-        }
-        if alignment not in jc_map:
-            return
-
-        tcPr = self._ensure_tcPr()
-        pPr = self._ensure_elem(tcPr, "pPr")
-        jc = self._ensure_elem(pPr, "jc")
-        jc.set(qn("w:val"), jc_map[alignment])
-
     def set_width(self, width: int, unit: str = "auto") -> None:
         """
         设置单元格宽度.
