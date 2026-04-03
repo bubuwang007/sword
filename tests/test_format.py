@@ -289,8 +289,30 @@ class TestTableFormatting:
         doc.format.set_table_paragraph(
             "Table Grid",
             alignment="center",
-            space_before=0,
+            space_before=12,
             space_after=6,
+            line_spacing=1.5,
+            line_spacing_rule="multiple",
+            left_indent=2,
+            right_indent=1,
+            first_line_indent=2,
+            hanging_indent=1,
+        )
+
+    def test_set_table_paragraph_all_params(self) -> None:
+        """测试设置表格段落所有参数."""
+        doc = WordDocument()
+        doc.format.set_table_paragraph(
+            "Table Grid",
+            alignment="left",
+            space_before=10,
+            space_after=10,
+            line_spacing=12,
+            line_spacing_rule="exact",
+            left_indent=3,
+            right_indent=2,
+            first_line_indent=4,
+            hanging_indent=2,
         )
 
     def test_table_style_all_format(self) -> None:

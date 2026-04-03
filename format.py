@@ -585,6 +585,10 @@ class StyleFormat:
         space_after: int | None = None,
         line_spacing: int | float | None = None,
         line_spacing_rule: str | None = None,
+        left_indent: int | None = None,
+        right_indent: int | None = None,
+        first_line_indent: int | None = None,   
+        hanging_indent: int | None = None,
     ) -> None:
         """
         设置表格样式段落格式.
@@ -596,6 +600,10 @@ class StyleFormat:
             space_after: 段后间距（磅）.
             line_spacing: 行距值.
             line_spacing_rule: 行距模式（"at_least"/"exactly"/"multiple"）。
+            left_indent: 左边缩进（字符数）。
+            right_indent: 右边缩进（字符数）。
+            first_line_indent: 首行缩进（字符数）。
+            hanging_indent: 悬挂缩进（字符数）。
         """
         style = self._get_style(style_name, WD_STYLE_TYPE.TABLE)
         if style is not None:
@@ -606,4 +614,8 @@ class StyleFormat:
                 space_after=space_after,
                 line_spacing=line_spacing,
                 line_spacing_rule=line_spacing_rule,
+                left_indent=left_indent,
+                right_indent=right_indent,
+                first_line_indent=first_line_indent,
+                hanging_indent=hanging_indent,
             )

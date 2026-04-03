@@ -7,6 +7,8 @@ from typing import Any
 from docx.table import Table
 from docx.document import Document as DocxDocument
 
+from sword.cell import WordCell
+
 
 class WordTable:
     """封装 Word 文档中的表格，提供便捷的表格操作."""
@@ -37,7 +39,7 @@ class WordTable:
         """获取底层的 python-docx Table 对象."""
         return self._table
 
-    def cell(self, row: int, col: int):
+    def cell(self, row: int, col: int) -> WordCell:
         """
         获取单元格.
 
@@ -46,9 +48,9 @@ class WordTable:
             col: 列索引（从 0 开始）。
 
         Returns:
-            单元格对象。
+            WordCell 对象。
         """
-        return self._table.cell(row, col)
+        return WordCell(self._table.cell(row, col))
 
     def set_style(self, style: str | None) -> None:
         """
