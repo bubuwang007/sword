@@ -12,6 +12,7 @@ from docx.oxml import OxmlElement
 
 from sword.section import WordSection
 from sword.format import StyleFormat
+from sword.paragraph import WordParagraph
 
 
 class WordDocument:
@@ -77,6 +78,20 @@ class WordDocument:
         self._has_added_section = True
         section = WordSection(self._doc, title, self._number_counts, title_level)
         return section
+
+    def add_paragraph(self, text: str = "", style: str | None = None) -> WordParagraph:
+        """
+        添加段落.
+
+        Args:
+            text: 段落文本.
+            style: 段落样式（可选）。
+
+        Returns:
+            WordParagraph: 创建的段落封装对象。
+        """
+        para = self._doc.add_paragraph(text, style=style)
+        return WordParagraph(para)
 
     def set_table_of_contents(self) -> None:
         """在文档开头插入目录（打开后需更新域或按 F9）."""

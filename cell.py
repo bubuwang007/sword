@@ -7,6 +7,8 @@ from typing import Any
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
+from sword.paragraph import WordParagraph
+
 
 class WordCell:
     """封装 Word 文档中的单元格，提供便捷的单元格操作."""
@@ -103,42 +105,6 @@ class WordCell:
                 elem.set(qn("w:space"), "0")
                 elem.set(qn("w:color"), border_color)
 
-    def set_margins(
-        self,
-        top: int | None = None,
-        bottom: int | None = None,
-        left: int | None = None,
-        right: int | None = None,
-    ) -> None:
-        """
-        设置单元格页边距.
-
-        Args:
-            top: 上边距（磅）。
-            bottom: 下边距（磅）。
-            left: 左边距（磅）。
-            right: 右边距（磅）。
-        """
-        tcPr = self._ensure_tcPr()
-        tcMar = self._ensure_elem(tcPr, "tcMar")
-
-        if top is not None:
-            elem = self._ensure_elem(tcMar, "top")
-            elem.set(qn("w:w"), str(int(top * 20)))
-            elem.set(qn("w:type"), "dxa")
-        if bottom is not None:
-            elem = self._ensure_elem(tcMar, "bottom")
-            elem.set(qn("w:w"), str(int(bottom * 20)))
-            elem.set(qn("w:type"), "dxa")
-        if left is not None:
-            elem = self._ensure_elem(tcMar, "left")
-            elem.set(qn("w:w"), str(int(left * 20)))
-            elem.set(qn("w:type"), "dxa")
-        if right is not None:
-            elem = self._ensure_elem(tcMar, "right")
-            elem.set(qn("w:w"), str(int(right * 20)))
-            elem.set(qn("w:type"), "dxa")
-
     def set_vertical_alignment(self, alignment: str = "center") -> None:
         """
         设置单元格垂直对齐方式.
@@ -181,6 +147,29 @@ class WordCell:
         else:
             tcW.set(qn("w:w"), str(width))
             tcW.set(qn("w:type"), "dxa")
+
+    def add_paragraph(self, text: str = "") -> WordParagraph:
+        """
+        在单元格中添加段落.
+
+        Args:
+            text: 段落文本。
+
+        Returns:
+            WordParagraph: 创建的段落封装对象。
+        """
+        para = self._cell.add_paragraph(text)
+        return WordParagraph(para)
+
+    def iter_paragraphs(self):
+        """
+        遍历单元格中所有段落.
+
+        Yields:
+            WordParagraph 对象。
+        """
+        for para in self._cell.paragraphs:
+            yield WordParagraph(para)
 
     def __enter__(self) -> WordCell:
         return self

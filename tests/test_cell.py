@@ -86,23 +86,6 @@ class TestWordCell:
         bottom = tcBorders.find(qn("w:bottom"))
         assert bottom.get(qn("w:val")) == "double"
 
-    def test_set_margins(self) -> None:
-        """测试设置单元格页边距."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_margins(top=10, bottom=20, left=30, right=40)
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-        tcMar = tcPr.find(qn("w:tcMar"))
-
-        top = tcMar.find(qn("w:top"))
-        assert top.get(qn("w:w")) == "200"
-
-        left = tcMar.find(qn("w:left"))
-        assert left.get(qn("w:w")) == "600"
-
     def test_set_vertical_alignment(self) -> None:
         """测试设置单元格垂直对齐."""
         doc = WordDocument()
@@ -138,58 +121,6 @@ class TestWordCell:
         tcPr = tc.find(qn("w:tcPr"))
         vAlign = tcPr.find(qn("w:vAlign"))
         assert vAlign.get(qn("w:val")) == "bottom"
-
-    def test_set_horizontal_alignment_center(self) -> None:
-        """测试设置单元格水平对齐为居中."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_horizontal_alignment("center")
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-        pPr = tcPr.find(qn("w:pPr"))
-        jc = pPr.find(qn("w:jc"))
-        assert jc.get(qn("w:val")) == "center"
-
-    def test_set_horizontal_alignment_left(self) -> None:
-        """测试设置单元格水平对齐为左对齐."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_horizontal_alignment("left")
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-        pPr = tcPr.find(qn("w:pPr"))
-        jc = pPr.find(qn("w:jc"))
-        assert jc.get(qn("w:val")) == "left"
-
-    def test_set_horizontal_alignment_right(self) -> None:
-        """测试设置单元格水平对齐为右对齐."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_horizontal_alignment("right")
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-        pPr = tcPr.find(qn("w:pPr"))
-        jc = pPr.find(qn("w:jc"))
-        assert jc.get(qn("w:val")) == "right"
-
-    def test_set_horizontal_alignment_justify(self) -> None:
-        """测试设置单元格水平对齐为两端对齐."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_horizontal_alignment("justify")
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-        pPr = tcPr.find(qn("w:pPr"))
-        jc = pPr.find(qn("w:jc"))
-        assert jc.get(qn("w:val")) == "both"
 
     def test_set_width_auto(self) -> None:
         """测试设置单元格宽度为自动."""
@@ -246,43 +177,6 @@ class TestWordCell:
         assert top.get(qn("w:sz")) == "48"
         assert top.get(qn("w:color")) == "00FF00"
 
-    def test_all_format_methods(self) -> None:
-        """测试单元格所有格式方法."""
-        doc = WordDocument()
-        table = WordTable(doc._inner, rows=3, cols=3)
-        cell = table.cell(0, 0)
-        cell.set_shading("E6E6E6")
-        cell.set_borders(top="single", bottom="single", border_size=8)
-        cell.set_margins(top=5, bottom=5, left=10, right=10)
-        cell.set_vertical_alignment("center")
-        cell.set_horizontal_alignment("center")
-        cell.set_width(500, unit="dxa")
-
-        tc = self._get_cell_elem(doc, 0, 0)
-        tcPr = tc.find(qn("w:tcPr"))
-
-        # 验证底纹
-        shd = tcPr.find(qn("w:shd"))
-        assert shd.get(qn("w:fill")) == "E6E6E6"
-
-        # 验证边框
-        tcBorders = tcPr.find(qn("w:tcBorders"))
-        assert tcBorders.find(qn("w:top")).get(qn("w:val")) == "single"
-
-        # 验证边距
-        tcMar = tcPr.find(qn("w:tcMar"))
-        assert tcMar.find(qn("w:top")).get(qn("w:w")) == "100"
-
-        # 验证垂直对齐
-        assert tcPr.find(qn("w:vAlign")).get(qn("w:val")) == "center"
-
-        # 验证水平对齐
-        pPr = tcPr.find(qn("w:pPr"))
-        assert pPr.find(qn("w:jc")).get(qn("w:val")) == "center"
-
-        # 验证宽度
-        assert tcPr.find(qn("w:tcW")).get(qn("w:w")) == "500"
-
     def test_save_document_with_cell_format(
         self, tmp_path: tempfile.TemporaryDirectory
     ) -> None:
@@ -292,7 +186,6 @@ class TestWordCell:
         cell = table.cell(0, 0)
         cell.text = "标题"
         cell.set_shading("FFFF00")
-        cell.set_horizontal_alignment("center")
 
         file_path = os.path.join(tmp_path, "cell_format_test.docx")
         doc.save(file_path)

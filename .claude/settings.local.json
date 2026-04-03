@@ -1,7 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(git commit:*)",
+      "Bash(git -C e:/develop/project/sword diff --stat)",
+      "Bash(git -C e:/develop/project/sword status --short)",
+      "Bash(git:*)"
     ]
   }
 }
